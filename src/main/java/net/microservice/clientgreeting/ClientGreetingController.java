@@ -1,14 +1,23 @@
 package net.microservice.clientgreeting;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
+import java.util.logging.Logger;
+
 @Controller
 public class ClientGreetingController {
- 
-    protected ClientGreetingService helloWorldService;
+
+	@Autowired
+	protected ClientGreetingService helloWorldService;
+	
+	protected Logger logger = Logger.getLogger(ClientGreetingController.class
+			.getName());
  
     //constructor
     public ClientGreetingController(ClientGreetingService helloWorldService) {
@@ -23,10 +32,29 @@ public class ClientGreetingController {
     @RequestMapping("/greeting/{name}")
     public String greeting(Model model, @PathVariable("name") String name) {
  
-        Greeting greeting = helloWorldService.greeting(name);
- 
-        model.addAttribute("greeting", greeting.getContent());
+    	logger.info("greeting() invoked: " + name);
+
+		Greeting greeting = helloWorldService.greeting(name);
+		
+		logger.info("greeting() found: " + greeting.getContent());
+	
+		model.addAttribute("greeting", greeting.getContent());
  
         return "greeting";
     }
+    
+    @RequestMapping("/greetingFuture/{name}")
+	public String greetingFuture(Model model, @PathVariable("name") String name) throws InterruptedException, ExecutionException {
+	
+		logger.info("greetingFuture() invoked: " + name);
+				
+		Future<Greeting> greeting = helloWorldService.greetingFuture(name);
+		
+		logger.info("greetingFuture() found: " + greeting.get().getContent());
+	
+		model.addAttribute("greeting", greeting.get().getContent());
+	
+		return "greeting";
+		
+	}
 }
